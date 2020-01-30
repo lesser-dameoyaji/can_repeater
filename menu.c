@@ -7,6 +7,8 @@
 #include "lcd.h"
 #include "config.h"
 
+#define VERSION_STRING "ver0.2.0"
+
 //
 // GPIO pin
 //
@@ -162,18 +164,18 @@ static int menu_save(unsigned char btn)
 		lcd_clear();
 		lcd_printf("saving");
 		
-		ret = config_save(true, "bridge1 = %s", (thread_desc[RX0].bridge_enable == true)? "ON":"OFF");
+		ret = config_save(true, "bridge0 = %s", (thread_desc[CH0].bridge_enable == true)? "ON":"OFF");
 		if(ret >= 0)
 			lcd_putc('.');
 		else
 			lcd_putc((ret==-1)?'x':'y');
 		
-		if(config_save(true, "bridge2 = %s", (thread_desc[RX1].bridge_enable == true)? "ON":"OFF") >= 0)
+		if(config_save(true, "bridge1 = %s", (thread_desc[CH1].bridge_enable == true)? "ON":"OFF") >= 0)
 			lcd_putc('.');
 		else
 			lcd_putc('x');
 		
-		if(config_save(true, "frame1 = %d,%03X,%d,%02X%02X%02X%02X%02X%02X%02X%02X", 
+		if(config_save(true, "frame0 = %d,%03X,%d,%02X%02X%02X%02X%02X%02X%02X%02X", 
 				frame_desc[0].ch,
 			 	frame_desc[0].frame.can_id,
 				frame_desc[0].frame.can_dlc,
@@ -189,7 +191,7 @@ static int menu_save(unsigned char btn)
 		else
 			lcd_putc('x');
 		
-		if(config_save(true, "frame2 = %d,%03X,%d,%02X%02X%02X%02X%02X%02X%02X%02X", 
+		if(config_save(true, "frame1 = %d,%03X,%d,%02X%02X%02X%02X%02X%02X%02X%02X", 
 				frame_desc[1].ch,
 			 	frame_desc[1].frame.can_id,
 				frame_desc[1].frame.can_dlc,
@@ -205,7 +207,7 @@ static int menu_save(unsigned char btn)
 		else
 			lcd_putc('x');
 		
-		if(config_save(true, "frame3 = %d,%03X,%d,%02X%02X%02X%02X%02X%02X%02X%02X", 
+		if(config_save(true, "frame2 = %d,%03X,%d,%02X%02X%02X%02X%02X%02X%02X%02X", 
 				frame_desc[2].ch,
 			 	frame_desc[2].frame.can_id,
 				frame_desc[2].frame.can_dlc,
@@ -221,7 +223,7 @@ static int menu_save(unsigned char btn)
 		else
 			lcd_putc('x');
 			
-		if(config_save(false, "frame4 = %d,%03X,%d,%02X%02X%02X%02X%02X%02X%02X%02X", 
+		if(config_save(false, "frame3 = %d,%03X,%d,%02X%02X%02X%02X%02X%02X%02X%02X", 
 				frame_desc[3].ch,
 			 	frame_desc[3].frame.can_id,
 				frame_desc[3].frame.can_dlc,
@@ -262,7 +264,7 @@ static int menu_title(unsigned char btn)
 		lcd_cursor(0, 0, false);
 		lcd_printf("can repeater");
 		lcd_cursor(0, 1, false);
-		lcd_printf(" ver0.1.0");
+		lcd_printf(" %s", VERSION_STRING);
 	}
 	if((btn > 0) || (count == 50))
 	{
@@ -326,35 +328,35 @@ static int menu_statics(unsigned char btn)
 		return 1;
 	}
 
-	// CH1 check
-	if((count[TX0] != thread_desc[TX0].can_frame_count) ||
-		(count[RX0] != thread_desc[RX0].can_frame_count))
+	// CH0 check
+	if((count[0] != thread_desc[CH0].can_tx_count) ||
+		(count[1] != thread_desc[CH0].can_rx_count))
 	{
-		count[TX0] = thread_desc[TX0].can_frame_count;
-		count[RX0] = thread_desc[RX0].can_frame_count;
+		count[0] = thread_desc[CH0].can_tx_count;
+		count[1] = thread_desc[CH0].can_rx_count;
 		update++;
 	}
-	if((bridge[0] == ' ') && (thread_desc[RX0].bridge_enable == true))
+	if((bridge[0] == ' ') && (thread_desc[CH0].bridge_enable == true))
 	{
 		bridge[0] = '-';
 	}
-	if((bridge[0] == '-') && (thread_desc[RX0].bridge_enable == false))
+	if((bridge[0] == '-') && (thread_desc[CH0].bridge_enable == false))
 	{
 		bridge[0] = ' ';
 	}
 	// CH2 check
-	if((count[TX1] != thread_desc[TX1].can_frame_count) ||
-		(count[RX1] != thread_desc[RX1].can_frame_count))
+	if((count[2] != thread_desc[CH1].can_tx_count) ||
+		(count[3] != thread_desc[CH1].can_rx_count))
 	{
-		count[TX1] = thread_desc[TX1].can_frame_count;
-		count[RX1] = thread_desc[RX1].can_frame_count;
+		count[2] = thread_desc[CH1].can_tx_count;
+		count[3] = thread_desc[CH1].can_rx_count;
 		update++;
 	}
-	if((bridge[1] == ' ') && (thread_desc[RX1].bridge_enable == true))
+	if((bridge[1] == ' ') && (thread_desc[CH1].bridge_enable == true))
 	{
 		bridge[1] = '-';
 	}
-	if((bridge[1] == '-') && (thread_desc[RX1].bridge_enable == false))
+	if((bridge[1] == '-') && (thread_desc[CH1].bridge_enable == false))
 	{
 		bridge[1] = ' ';
 	}
@@ -364,14 +366,14 @@ static int menu_statics(unsigned char btn)
 		update = 0;
 		lcd_clear();
 		lcd_printf("R0:%4d%cT1:%4d", 
-				count[RX0],
+				count[1],
 				bridge[0],
-			       	count[TX1]);
+			       	count[2]);
 		lcd_cursor(0, 1, false);
 		lcd_printf("T0:%4d%cR1:%4d", 
-				count[TX0],
+				count[0],
 				bridge[1],
-			       	count[RX1]);
+			       	count[3]);
 	}
 	return 0;
 
@@ -400,7 +402,7 @@ static int menu_bridge_config(unsigned char btn)
 	}
 	if(btn == BTN_R)
 	{
-		ch = (cur==0)? RX0: RX1;
+		ch = (cur==0)? CH0: CH1;
 
 		if(thread_desc[ch].bridge_enable == false)
 		{
@@ -422,9 +424,9 @@ static int menu_bridge_config(unsigned char btn)
 		update = 0;
 		//
 		lcd_clear();
-		lcd_printf("%cCH1 Bridge %s", (cur==0)? '\x7e':' ', (thread_desc[RX0].bridge_enable==true)? "ON":"OFF");
+		lcd_printf("%cCH0 Bridge %s", (cur==0)? '\x7e':' ', (thread_desc[CH0].bridge_enable==true)? "ON":"OFF");
 		lcd_cursor(0, 1, false);
-		lcd_printf("%cCH2 Bridge %s", (cur==1)? '\x7e':' ', (thread_desc[RX1].bridge_enable==true)? "ON":"OFF");
+		lcd_printf("%cCH1 Bridge %s", (cur==1)? '\x7e':' ', (thread_desc[CH1].bridge_enable==true)? "ON":"OFF");
 	}
 
 }
@@ -477,7 +479,7 @@ static int send_frame1(unsigned char btn)
 		frame_desc[0].frame.data[6], 
 		frame_desc[0].frame.data[7] };
 
-	ch = (frame_desc[0].ch == 0)? TX0:TX1;
+	ch = (frame_desc[0].ch == 0)? CH0:CH1;
 	
 	send(thread_desc[ch].cli_fd, &frame, sizeof(struct can_frame), 0);
 	return -1;

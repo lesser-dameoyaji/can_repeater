@@ -48,9 +48,7 @@ int configure(char** argv)
 	if(strncmp(argv[0], "frame", 5) == 0)
 	{
 		index = atoi(&argv[0][5]);
-		if((0<index) && (index<5))
-			index--;
-		else
+		if((0>index) || (index>1))
 			return 2;
 		// frame ch
 		frame_desc[index].ch = atoi(&argv[1][0]);
@@ -72,15 +70,15 @@ int configure(char** argv)
 	if(strncmp(argv[0], "bridge", 6) == 0)
 	{
 		ch = atoi(&argv[0][6]);
-		if(ch == 1)
+		if(ch == 0)
+		{
+			printf("CH0:");
+			ch = CH0;
+		}
+		else if(ch == 1)
 		{
 			printf("CH1:");
-			ch = RX0;
-		}
-		else if(ch == 2)
-		{
-			printf("CH2:");
-			ch = RX1;
+			ch = CH1;
 		}
 		else
 		{
@@ -124,16 +122,43 @@ int main(int argc, char ** argv)
 
 	for(i=0; i<4; i++)
 	{
-		thread_desc[0].handlers[i] = NULL;
-		thread_desc[1].handlers[i] = NULL;
-		thread_desc[2].handlers[i] = NULL;
-		thread_desc[3].handlers[i] = NULL;
+		thread_desc[CH0].handlers[i] = NULL;
+		thread_desc[CH1].handlers[i] = NULL;
 	}
 
 	menu_init();
 	
 	//read_config(CONFIG_FILE_NAME);
 	// thread configuration
+	thread_desc[CH0].id				= CH0;
+	thread_desc[CH0].svr_fd			= -1;
+	thread_desc[CH0].cli_fd			= -1;
+	thread_desc[CH0].can_tx_fd		= -1;
+	thread_desc[CH0].can_rx_fd		= -1;
+	thread_desc[CH0].fds_num		= 0;
+	thread_desc[CH0].bridge_thread	= 1;
+	strcpy(thread_desc[CH0].can_rx_name, "can0");
+	strcpy(thread_desc[CH0].can_tx_name, "can1");
+	strcpy(thread_desc[CH0].uds_path, "/tmp/can_repeater_thread0");
+	thread_desc[CH0].framefilter_que = &framefilter_que[0];
+	thread_desc[CH0].bridge_enable_default = false;
+	
+	thread_desc[CH1].id				= CH1;
+	thread_desc[CH1].svr_fd			= -1;
+	thread_desc[CH1].cli_fd			= -1;
+	thread_desc[CH1].can_tx_fd		= -1;
+	thread_desc[CH1].can_rx_fd		= -1;
+	thread_desc[CH1].fds_num		= 0;
+	thread_desc[CH1].bridge_thread	= 1;
+	strcpy(thread_desc[CH1].can_rx_name, "can1");
+	strcpy(thread_desc[CH1].can_tx_name, "can0");
+	strcpy(thread_desc[CH1].uds_path, "/tmp/can_repeater_thread1");
+	thread_desc[CH1].framefilter_que = &framefilter_que[1];
+	thread_desc[CH1].bridge_enable_default = false;
+
+	start_thread(&thread_desc[CH0]);
+	start_thread(&thread_desc[CH1]);
+#if 0
 	thread_desc[TX0].id			= 0;
 	thread_desc[TX0].dir		= DIR_CAN_TX;
 	thread_desc[TX0].svr_fd		= -1;
@@ -177,11 +202,12 @@ int main(int argc, char ** argv)
 	strcpy(thread_desc[RX1].uds_path, "/tmp/can_repeater_threadRX1");
 	thread_desc[RX1].bridge_enable_default = false;
 	thread_desc[RX1].framefilter_que = &framefilter_que[1];
-
+	
 	start_thread(&thread_desc[TX0]);
 	start_thread(&thread_desc[TX1]);
 	start_thread(&thread_desc[RX0]);
 	start_thread(&thread_desc[RX1]);
+#endif
 
 	// main loop
 	while(exit_process_request == 0)
@@ -223,7 +249,8 @@ static void* canrep_thread(void* arg)
 
 	// thread argument
 	thread_descriptor_t* tdesc = (thread_descriptor_t*)arg;
-
+	
+	
 	//
 	// UNIX DOMAIN socket open
 	//
@@ -241,36 +268,32 @@ static void* canrep_thread(void* arg)
 
 	// 
 	tdesc->bridge_enable = tdesc->bridge_enable_default;
+	framefilter_init(tdesc->framefilter_que);
 	
 	//
-	// CAN socket open
+	// CAN RX socket open
 	//
-	tdesc->can_fd = csock_open(tdesc->can_name);
-	if(tdesc->can_fd < 0)
+	tdesc->can_rx_fd = csock_open(tdesc->can_rx_name);
+	if(tdesc->can_rx_fd < 0)
 	{
-		printf("can socket open error %d:%d\n", tdesc->id, tdesc->can_fd);
+		printf("can rx socket open error %d:%d\n", tdesc->id, tdesc->can_rx_fd);
 		return NULL;
 	}
-
-	if(tdesc->dir == DIR_CAN_RX)
-	{
-		// one time filter initialize
-		framefilter_init(tdesc->framefilter_que);
 		
-		// polling setup
-		tdesc->fds[tdesc->fds_num].fd		= tdesc->can_fd;
-		tdesc->fds[tdesc->fds_num].events	= POLLIN;
-		tdesc->handlers[tdesc->fds_num]		= cr_handler;
-		tdesc->fds_num++;
-	}
-	if(tdesc->dir == DIR_CAN_TX)
+	// polling setup
+	tdesc->fds[tdesc->fds_num].fd		= tdesc->can_rx_fd;
+	tdesc->fds[tdesc->fds_num].events	= POLLIN;
+	tdesc->handlers[tdesc->fds_num]		= cr_handler;
+	tdesc->fds_num++;
+	
+	//
+	// CAN TX socket open
+	//
+	tdesc->can_tx_fd = csock_open(tdesc->can_tx_name);
+	if(tdesc->can_tx_fd < 0)
 	{
-		tdesc->cli_fd = uds_open_cli(tdesc->uds_path);
-		if(tdesc->cli_fd < 0)
-		{
-			printf("client socket open error %d\n", tdesc->id);
-			return NULL;
-		}
+		printf("can tx socket open error %d:%d\n", tdesc->id, tdesc->can_tx_fd);
+		return NULL;
 	}
 	
 	if(tdesc->bridge_thread < 0)
@@ -298,9 +321,13 @@ static void* canrep_thread(void* arg)
 				}
 			}
 		}
-	       	else if(ret == 0)
+       	else if(ret == 0)
 		{
 			// timeout
+			if(tdesc->cli_fd < 0)
+			{
+				tdesc->cli_fd = uds_open_cli(tdesc->uds_path);
+			}
 		}
 		else
 		{
@@ -333,8 +360,8 @@ static int svr_handler(void* arg)
 	desc->fds[desc->fds_num].fd = desc->acptd_fd;
 	desc->fds[desc->fds_num].events = POLLIN;
 	desc->handlers[desc->fds_num] = cs_handler;
-
 	desc->fds_num++;
+	
 	return 0;
 }
 
@@ -364,17 +391,17 @@ static int cs_handler(void* arg)
 		
 		framefilter_add(desc->framefilter_que, &frame);
 
-		len = csock_send(desc->can_fd, frame.can_id, frame.data, (int)frame.can_dlc);
+		len = csock_send(desc->can_tx_fd, frame.can_id, frame.data, (int)frame.can_dlc);
 		if(len < 0)
 		{
 			printf(" canrep_send fail\n");
 		}
 		else
 		{
-			if(desc->can_frame_count < 10000)
-				desc->can_frame_count++;
+			if(desc->can_tx_count < 10000)
+				desc->can_tx_count++;
 			else
-				desc->can_frame_count = 0;
+				desc->can_tx_count = 0;
 		}
 	}
 	
@@ -387,7 +414,7 @@ static int cr_handler(void* arg)
 	int ret, i, j;
 	struct can_frame frame;
 
-	ret = csock_recv(desc->can_fd, &frame);
+	ret = csock_recv(desc->can_rx_fd, &frame);
 	
 	printf("cr_handler: recv %d:%04x:%02x:", desc->id, frame.can_id, frame.can_dlc);
 	for(i=0; i<frame.can_dlc; i++)
@@ -401,10 +428,10 @@ static int cr_handler(void* arg)
 		return 0;
 	}
 	
-	if(desc->can_frame_count < 10000)
-		desc->can_frame_count++;
+	if(desc->can_rx_count < 10000)
+		desc->can_rx_count++;
 	else
-		desc->can_frame_count = 0;
+		desc->can_rx_count = 0;
 
 
 	if(desc->bridge_enable == true)

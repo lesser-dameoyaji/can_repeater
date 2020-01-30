@@ -4,10 +4,12 @@
 
 #include "types.h"
 
-#define TX0	0
-#define RX0	1
-#define TX1	2
-#define RX1	3
+//#define TX0	0
+//#define RX0	1
+//#define TX1	2
+//#define RX1	3
+#define CH0		0
+#define CH1		1
 
 typedef int bool;
 #define true	1
@@ -38,17 +40,19 @@ typedef struct {
 	// socket framework
 	int svr_fd;
 	int acptd_fd;
-	// can socket
-	int can_fd;
 	// 
 	int cli_fd;
+	// can socket
+	int can_tx_fd;
+	int can_rx_fd;
 	// 
 	int* brg_fd;
 	struct pollfd fds[4];
 	int fds_num;
 
 	// statistics
-	int can_frame_count;
+	int can_tx_count;
+	int can_rx_count;
 
 	// control
 	bool bridge_enable;
@@ -56,9 +60,10 @@ typedef struct {
 	
 	// configurations
 	int id;
-	int dir;
+//	int dir;
 	handler_func* handlers[4];
-	char can_name[16];
+	char can_tx_name[16];
+	char can_rx_name[16];
 	char uds_path[128];
 //	char uds_path_bridge[128];
 	int bridge_thread;
