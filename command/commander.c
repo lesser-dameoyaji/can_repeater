@@ -5,6 +5,7 @@
 #include "command.h"
 
 void cmd_csock(int id, int argc, void** argv);
+void cmd_id(int id, int argc, void** argv);
 void cmd_send(int id, int argc, void** argv);
 void cmd_route(int id, int argc, void** argv);
 void cmd_echo(int id, int argc, void** argv);
@@ -19,6 +20,7 @@ typedef struct {
 //
 static cmd_table_t cmd_table[] = {
 	{"echo", cmd_echo},
+	{"id", cmd_id},
 	{"send", cmd_send},
 	{"route", cmd_route},
 	{"csock", cmd_csock},
@@ -112,8 +114,13 @@ void commander(int id, char* buf)
 	
 	for(idx=0; cmd_table[idx].cmd_str != NULL; idx++)
 	{
-		if((strncmp(cmd_table[idx].cmd_str, buf, sizeof(cmd_table[idx].cmd_str)) == 0) && (cmd_table[idx].func != NULL))
+		if(strncmp(cmd_table[idx].cmd_str, buf, strlen(cmd_table[idx].cmd_str)) == 0)
 		{
+		 	if(cmd_table[idx].func == NULL)
+		 	{
+		 		printf("no func\n");
+		 		continue;
+		 	}
 			parser(buf);
 /*			if(cmd_argc > 0)
 			{

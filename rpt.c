@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <unistd.h>
+#include <string.h>
+#include <errno.h>
 
 #include <netdb.h>
 
@@ -176,9 +178,14 @@ static void* thread_main(void* arg)
 			if(self_svr_handle.revents & POLLIN)
 			{
 				// command received
+				from_len = sizeof(from);
 				l = recvfrom(self_svr_handle.fd, buf, BUF_SIZE, 0, (struct sockaddr *)&from, &from_len);
 				buf[l] = 0;
-				commander(id, buf);
+/*				if(l < 0)
+				{
+					printf("%d:%d:errno=%s:%s\n", id, l, strerror(errno), buf);
+				}
+*/				commander(id, buf);
 			}
 			if((self.nfd > 1) && (self_can_handle.revents & POLLIN))
 			{
@@ -192,13 +199,16 @@ static void* thread_main(void* arg)
 				}
 				printf("\n");
 				
+				// テーブル末尾から検索 (先頭にはデフォルトルートがある)
 				for(i=self.routing_table_count; i >= 0;i--)
 				{
+					// can_id が無効の場合、テーブル無視
 					if(self.routing_table[i].id > CAN_ID_MAX)
 						continue;
 						
 					if( (frame.can_id & self.routing_table[i].id_mask) == (self.routing_table[i].id & self.routing_table[i].id_mask) )
 					{
+						// 宛先無効の場合、受信フレームをドロップ
 						if( (self.routing_table[i].dst_id < 0) || (self.routing_table[i].dst_id >= THREAD_ID_MAX) )
 							printf("%d drop\n", id);
 						else

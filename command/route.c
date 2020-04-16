@@ -18,7 +18,19 @@ void cmd_route(int id, int argc, void** argv)
 		return;
 	}
 	
-		command = (char*)argv[1];
+	command = (char*)argv[1];
+	
+	if(argc < 3)
+	{
+		printf("too few argument to delete routing table\n");
+		return;
+	}
+	can_id = strtol((char*)argv[2], NULL, 16);
+	if(can_id > CAN_ID_MAX)
+	{
+		printf("invalid id\n");
+		return;
+	}
 	
 	if (strcmp("set", command)==0)
 	{
@@ -28,20 +40,16 @@ void cmd_route(int id, int argc, void** argv)
 			return;
 		}
 		
-		can_id = strtol((char*)argv[2], NULL, 16);
 		id_mask = strtol((char*)argv[3], NULL, 16);
 		dst_id = strtol((char*)argv[4], NULL, 16);
-
-		if(can_id > CAN_ID_MAX)
-		{
-			printf("invalid id\n");
-			return;
-		}
+		
+		// search can_id
 		for(i=1; i<=self.routing_table_count; i++)
 		{
 			if(self.routing_table[i].id == can_id)
 				break;
 		}
+		// if found, over-write. or not, append new can_id.
 		if(i > self.routing_table_count)
 			self.routing_table_count = i;
 			
@@ -51,18 +59,7 @@ void cmd_route(int id, int argc, void** argv)
 	}
 	else if(strcmp("del", command)==0)
 	{
-		if(argc < 3)
-		{
-			printf("too few argument to delete routing table\n");
-			return;
-		}
 		
-		can_id = strtol((char*)argv[2], NULL, 16);
-		if(can_id > CAN_ID_MAX)
-		{
-			printf("invalid id\n");
-			return;
-		}
 		for(i=1; i<=self.routing_table_count; i++)
 		{
 			if(self.routing_table[i].id == can_id)
@@ -94,10 +91,31 @@ void cmd_route(int id, int argc, void** argv)
 	}
 	else if(strcmp("enable", command)==0)
 	{
-		
+		for(i=1; i<=self.routing_table_count; i++)
+		{
+			if(self.routing_table[i].id == can_id)
+				break;
+		}
+		if(i > self.routing_table_count)
+		{
+			printf("not found %d\n", i);
+			return;
+		}
+		self.routing_table[i].id |= ~(CAN_ID_INVALID & ~CAN_ID_MAX);
 	}
 	else if(strcmp("disable", command)==0)
 	{
+		for(i=1; i<=self.routing_table_count; i++)
+		{
+			if(self.routing_table[i].id == can_id)
+				break;
+		}
+		if(i > self.routing_table_count)
+		{
+			printf("not found %d\n", i);
+			return;
+		}
+		self.routing_table[i].id &= CAN_ID_MAX;
 	}
 	else if(strcmp("stat", command)==0)
 	{
