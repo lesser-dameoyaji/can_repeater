@@ -1,4 +1,2 @@
 all:
-	gcc -lpthread -li2c -lwiringPi main.c cansock.c uds.c lcd.c menu.c config.c filter.c
-
-
+	gcc -I include -lpthread -li2c -lwiringPi main.c rpt.c cansock.c command/commander.c command/echo.c command/thread.c command/exit.c command/csock.c command/send.c command/route.c
