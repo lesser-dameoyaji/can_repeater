@@ -113,7 +113,7 @@ int thread_start(int id)
 	
 	self.id = id;
 	self.cmd_port = CMD_SOCKET_BASE + id;
-	self.exit_request = 0;
+	self.status = STATUS_STOP;
 	
 	err = pthread_attr_init(&thread_attr);
 	err = pthread_create(&thread_handle, &thread_attr, thread_main, (void*)id);
@@ -170,7 +170,8 @@ static void* thread_main(void* arg)
 	self.routing_table_count = 1;
 	
 	printf("thread%d enter loop..\n", id);
-	while(self.exit_request==0)
+	self.status = STATUS_RUN;
+	while(self.status > STATUS_EXIT)
 	{
 		ret = poll(self.server_handles, self.nfd, 500);
 		if(ret > 0)
@@ -234,6 +235,7 @@ static void* thread_main(void* arg)
 	
 	if(self_svr_handle.fd > 0)
 		close(self_svr_handle.fd);
+	self.status = STATUS_STOP;
 	printf("thread%d exit\n", id);
 }
 

@@ -1,6 +1,8 @@
 #include "common.h"
 #include "rpt.h"
 
+extern void cmd_csock_ifdown(int id);
+extern void cmd_csock_close(int id);
 
 // thread exit command
 void cmd_exit(int id, int argc, void** argv)
@@ -12,7 +14,20 @@ void cmd_exit(int id, int argc, void** argv)
 		pthread_join(self.child_thread_handle, NULL);
 		
 	}
-	self.exit_request++;
+	if(self.status == STATUS_RUN_IFOPN)
+	{
+		cmd_csock_close(id);
+		self.status = STATUS_RUN_IFUP;
+	}
+	if(self.status == STATUS_RUN_IFUP)
+	{
+		cmd_csock_ifdown(id);
+		self.status = STATUS_RUN;
+	}
+	if(self.status == STATUS_RUN)
+	{
+		self.status = STATUS_EXIT;
+	}
 	return;
 }
 

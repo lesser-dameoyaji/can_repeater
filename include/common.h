@@ -13,6 +13,11 @@
 #define CAN_ID_MAX			0x7FF	// Standard ID
 #define CAN_ID_INVALID		0xFFF	// Invalid CAN ID
 
+// types
+#define true				1
+#define false				0
+
+
 typedef struct {
 	unsigned int id;
 	unsigned int id_mask;
@@ -33,11 +38,16 @@ typedef struct {
 	route_t routing_table[ROUTING_TABLE_SIZE];
 	int routing_table_count;
 	
-	unsigned char exit_request;
+	unsigned char status;
 } self_t;
 #define IDX_SVH_SOCK	0
 #define IDX_SVH_CAN		1
 
+#define STATUS_STOP			-1
+#define STATUS_EXIT			0
+#define STATUS_RUN			1
+#define STATUS_RUN_IFUP		2
+#define STATUS_RUN_IFOPN	3
 
 extern self_t selfs[THREAD_ID_MAX];
 
