@@ -5,6 +5,7 @@
 
 #include "common.h"
 #include "rpt.h"
+#include "menu.h"
 
 #define RESULT_EOF		-1
 #define RESULT_FAIL		-2
@@ -90,6 +91,8 @@ void main(void)
 	pthread_t thread_handle;
 	// initialize
 	id = 0;
+	
+	menu_init();
 	
 	// thread start
 	thread_handle = thread_start(id);

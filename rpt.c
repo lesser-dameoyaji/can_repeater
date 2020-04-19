@@ -200,6 +200,11 @@ static void* thread_main(void* arg)
 				}
 				printf("\n");
 				
+				if(self.rx_count < COUNT_MAX)
+					self.rx_count++;
+				else
+					self.rx_count = 0;
+				
 				// テーブル末尾から検索 (先頭にはデフォルトルートがある)
 				for(i=self.routing_table_count; i >= 0;i--)
 				{

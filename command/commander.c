@@ -9,6 +9,7 @@ void cmd_id(int id, int argc, void** argv);
 void cmd_send(int id, int argc, void** argv);
 void cmd_route(int id, int argc, void** argv);
 void cmd_echo(int id, int argc, void** argv);
+void cmd_count(int id, int argc, void** argv);
 void cmd_thread(int id, int argc, void** argv);
 void cmd_reset(int id, int argc, void** argv);
 void cmd_exit(int id, int argc, void** argv);
@@ -25,6 +26,7 @@ static cmd_table_t cmd_table[] = {
 	{"send", cmd_send},
 	{"route", cmd_route},
 	{"csock", cmd_csock},
+	{"count", cmd_count},
 	{"thread", cmd_thread},
 	{"reset", cmd_reset},
 	{"exit", cmd_exit},

@@ -10,13 +10,15 @@
 #define THREAD_ID_MAX		2		// threadêî
 #define CMD_SOCKET_BASE		8000	// 
 #define ROUTING_TABLE_SIZE	32		//
+#define COUNT_MAX			9999	//
+
+// types
 #define CAN_ID_MAX			0x7FF	// Standard ID
 #define CAN_ID_INVALID		0xFFF	// Invalid CAN ID
 
-// types
+typedef int bool;
 #define true				1
 #define false				0
-
 
 typedef struct {
 	unsigned int id;
@@ -30,10 +32,13 @@ typedef struct {
 	pthread_t child_thread_handle;
 	unsigned short cmd_port;					// server port number
 	
-	struct pollfd server_handles[2];			// server socket handle
+	struct pollfd server_handles[2];			// server socket handle. [0]command(UDP), [1]can rx
 	struct sockaddr_in server_addr;				// used by client
 	int client_handle;
 	int nfd;
+	
+	int tx_count;
+	int rx_count;
 	
 	route_t routing_table[ROUTING_TABLE_SIZE];
 	int routing_table_count;

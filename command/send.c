@@ -35,7 +35,14 @@ void cmd_send(int id, int argc, void** argv)
 	can_frame.len = dlc;
 	can_frame.flags = 0;
 
-	if(write(self_can_handle.fd, &can_frame, CAN_MTU) != CAN_MTU)
+	if(write(self_can_handle.fd, &can_frame, CAN_MTU) == CAN_MTU)
+	{
+		if(self.rx_count < COUNT_MAX)
+			self.tx_count++;
+		else
+			self.tx_count = 0;
+	}
+	else
 	{
 		printf("write error %d: %x %d", errno, can_frame.can_id, dlc);
 		for(i=0; i < dlc ; i++)
