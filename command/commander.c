@@ -10,6 +10,7 @@ void cmd_send(int id, int argc, void** argv);
 void cmd_route(int id, int argc, void** argv);
 void cmd_echo(int id, int argc, void** argv);
 void cmd_thread(int id, int argc, void** argv);
+void cmd_reset(int id, int argc, void** argv);
 void cmd_exit(int id, int argc, void** argv);
 
 typedef struct {
@@ -25,6 +26,7 @@ static cmd_table_t cmd_table[] = {
 	{"route", cmd_route},
 	{"csock", cmd_csock},
 	{"thread", cmd_thread},
+	{"reset", cmd_reset},
 	{"exit", cmd_exit},
 	{NULL, NULL}
 };
