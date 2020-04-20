@@ -5,6 +5,8 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
+#define VERSION_STRING "ver0.0.1"
+
 // configurations
 
 #define THREAD_ID_MAX		2		// threadêî

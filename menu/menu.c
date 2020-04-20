@@ -6,6 +6,9 @@
 #include "lcd.h"
 
 
+extern int menu_title(int event);
+
+
 //
 // GPIO pin
 //
@@ -45,21 +48,19 @@ int menu(void)
 			btn = pin_desc[i].pin;
 		}
 	}
-	#if 0
 	switch(mn)
 	{
-		case MENU_TITLE:
+		default:
 			mn += menu_title(btn);
 			break;
-		case MENU_STATICS:
-			mn += menu_statics(btn);
-			break;
-		case MENU_LIST:
-			mn += main_list(btn);
-			break;
+//		case MENU_STATICS:
+//			mn += menu_statics(btn);
+//			break;
+//		case MENU_LIST:
+//			mn += main_list(btn);
+//			break;
 	}
 	lcd_flush();
-	#endif
 }
 
 //
