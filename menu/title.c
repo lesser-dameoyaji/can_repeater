@@ -4,22 +4,21 @@
 #include "menu.h"
 #include "lcd.h"
 
-int menu_title(int event)
+unsigned int menu_title(unsigned int event)
 {
-	static int count = 0;
-
-	count++;
-	if(count == 1)
+	if(event == ENTER)
 	{
+		printf("enter title\n");
 		lcd_cursor(0, 0, false);
-		lcd_printf("can repeater");
+		lcd_printf("can repeater2");
 		lcd_cursor(0, 1, false);
 		lcd_printf(" %s", VERSION_STRING);
+		
+		menu_timer_start(0, 50, false);
 	}
-	if((event > 0) || (count == 50))
+	if(event == TIMEOUT0)
 	{
-//		update++;
-		return 1;
+		printf("TIMEOUT0\n");
 	}
 	return 0;
 }

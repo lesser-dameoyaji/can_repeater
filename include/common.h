@@ -13,6 +13,7 @@
 #define CMD_SOCKET_BASE		8000	// 
 #define ROUTING_TABLE_SIZE	32		//
 #define COUNT_MAX			9999	//
+#define TIMER_ID_MAX		2		// timerêî
 
 // types
 #define CAN_ID_MAX			0x7FF	// Standard ID

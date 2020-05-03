@@ -110,6 +110,13 @@ void main(void)
 		// configuration
 		configure();
 		
+		menu_change(0);
+		while(true)
+		{
+			usleep(20*1000);
+			menu();
+		}
+		
 		// wait thread end.
 		pthread_join(thread_handle, NULL);
 	}
