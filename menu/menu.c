@@ -7,9 +7,11 @@
 
 
 extern unsigned int menu_title(unsigned int event);
+extern unsigned int menu_counter(unsigned int event);
 
 menu_func* menu_table[] = {
 	menu_title,
+	menu_counter,
 	NULL
 };
 

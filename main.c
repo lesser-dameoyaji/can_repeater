@@ -10,7 +10,7 @@
 #define RESULT_EOF		-1
 #define RESULT_FAIL		-2
 
-self_t selfs[2];
+self_t selfs[GLOBAL_CH_MAX];
 
 static int read_line(int fh, char* buf, int max_len)
 {

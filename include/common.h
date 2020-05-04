@@ -9,7 +9,8 @@
 
 // configurations
 
-#define THREAD_ID_MAX		2		// thread数
+#define LOCAL_CH_MAX		2		// 自CAN CH数
+#define GLOBAL_CH_MAX		2		// 全CAN CH数
 #define CMD_SOCKET_BASE		8000	// 
 #define ROUTING_TABLE_SIZE	32		//
 #define COUNT_MAX			9999	//
@@ -57,7 +58,7 @@ typedef struct {
 #define STATUS_RUN_IFUP		2
 #define STATUS_RUN_IFOPN	3
 
-extern self_t selfs[THREAD_ID_MAX];
+extern self_t selfs[GLOBAL_CH_MAX];
 
 
 // self メモリアクセス用マクロ

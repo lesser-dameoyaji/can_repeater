@@ -4,6 +4,7 @@
 
 void cmd_count_reset_txrx(int id)
 {
+	// todo. ‘¼ƒ{[ƒh‚Ö‚Ì“]‘—
 	self.tx_count = 0;
 	self.rx_count = 0;
 }
@@ -44,7 +45,7 @@ void cmd_count(int id, int argc, void** argv)
 		}
 		else if(strcmp("all", (char*)argv[2]) == 0)
 		{
-			for(i=0; i<THREAD_ID_MAX; i++)
+			for(i=0; i<GLOBAL_CH_MAX; i++)
 				cmd_count_reset_txrx(i);
 		}
 	}

@@ -163,7 +163,7 @@ static void* thread_main(void* arg)
 	}
 	self.routing_table[0].id = CAN_ID_MAX;
 	self.routing_table[0].id_mask = 0;
-	if((id + 1) < THREAD_ID_MAX)
+	if((id + 1) < GLOBAL_CH_MAX)
 		self.routing_table[0].dst_id = id + 1;
 	else
 		self.routing_table[0].dst_id = 0;
@@ -215,7 +215,7 @@ static void* thread_main(void* arg)
 					if( (frame.can_id & self.routing_table[i].id_mask) == (self.routing_table[i].id & self.routing_table[i].id_mask) )
 					{
 						// 宛先無効の場合、受信フレームをドロップ
-						if( (self.routing_table[i].dst_id < 0) || (self.routing_table[i].dst_id >= THREAD_ID_MAX) )
+						if( (self.routing_table[i].dst_id < 0) || (self.routing_table[i].dst_id >= GLOBAL_CH_MAX) )
 							printf("%d drop\n", id);
 						else
 						{
