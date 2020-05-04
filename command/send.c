@@ -37,7 +37,7 @@ void cmd_send(int id, int argc, void** argv)
 
 	if(write(self_can_handle.fd, &can_frame, CAN_MTU) == CAN_MTU)
 	{
-		if(self.rx_count < COUNT_MAX)
+		if(self.tx_count < COUNT_MAX)
 			self.tx_count++;
 		else
 			self.tx_count = 0;
