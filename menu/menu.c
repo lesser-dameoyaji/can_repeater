@@ -30,6 +30,12 @@ timer_descriptor_t timer_table[TIMER_ID_MAX];
 //
 // GPIO pin
 //
+#define KEY_EDGE_DETECT	0x02
+#define KEY_ON			0x01
+#define KEY_OFF			0x00
+#define KEY_RELEASE		(KEY_EDGE_DETECT | KEY_OFF)
+#define KEY_PUSH		(KEY_EDGE_DETECT | KEY_ON)
+
 typedef struct {
 	int pin;
 	unsigned char crcnt;
@@ -86,7 +92,7 @@ void menu_timer_stop(unsigned int timer_id)
 	}
 }
 
-void menu_core(unsigned int event)
+static void menu_core(unsigned int event)
 {
 	if(menu_id < MENU_ID_MAX)
 	{
@@ -108,15 +114,12 @@ int menu(void)
 	
 	for(i=0; i<4; i++)
 	{
-		if((pin_read(i) & 0x03) == 0x03)
+		// button priority L<R<U<D
+		event = pin_read(i);
+		
+		if(event != NO_EVENT)
 		{
-			// button priority L<R<U<D
-			event = pin_desc[i].pin;
-			
-			if(event != NO_EVENT)
-			{
-				menu_core(event);
-			}
+			menu_core(event);
 		}
 	}
 	
@@ -149,25 +152,25 @@ int pin_init(void)
 		pin_desc[i].prev_detect = 0;
 	}
 
-	pin_desc[0].pin = BTN_L;
-	pin_desc[1].pin = BTN_R;
-	pin_desc[2].pin = BTN_U;
-	pin_desc[3].pin = BTN_D;
+	pin_desc[0].pin = KEY_L;
+	pin_desc[1].pin = KEY_R;
+	pin_desc[2].pin = KEY_U;
+	pin_desc[3].pin = KEY_D;
 
 	if(wiringPiSetupGpio() < 0)
 	{
 		printf("GPIO initialize fail\n");
 		return -1;
 	}
-	pinMode(BTN_L, INPUT);
-	pinMode(BTN_R, INPUT);
-	pinMode(BTN_U, INPUT);
-	pinMode(BTN_D, INPUT);
+	pinMode(KEY_L, INPUT);
+	pinMode(KEY_R, INPUT);
+	pinMode(KEY_U, INPUT);
+	pinMode(KEY_D, INPUT);
 
-	pullUpDnControl(BTN_L, PUD_UP);
-	pullUpDnControl(BTN_R, PUD_UP);
-	pullUpDnControl(BTN_U, PUD_UP);
-	pullUpDnControl(BTN_D, PUD_UP);
+	pullUpDnControl(KEY_L, PUD_UP);
+	pullUpDnControl(KEY_R, PUD_UP);
+	pullUpDnControl(KEY_U, PUD_UP);
+	pullUpDnControl(KEY_D, PUD_UP);
 
 	return 0;
 }
@@ -187,20 +190,33 @@ unsigned char pin_read(int index)
 	}
 	if(now_detect == pin_desc[index].prev_detect)
 	{
+		// detect chatter, counter restart
 		pin_desc[index].crcnt = 0;
 		detect = pin_desc[index].prev_detect;
 	}
 	else
 	{
 		pin_desc[index].crcnt++;
-		if(pin_desc[index].crcnt < 2)
+		if(pin_desc[index].crcnt < MENU_KEY_REDUCE_CHATTER)
 		{
 			detect = pin_desc[index].prev_detect;
 		}
 		else
 		{
 			pin_desc[index].prev_detect = now_detect;
-			detect = now_detect | 0x02;	// edge flag on
+			detect = now_detect | KEY_EDGE_DETECT;	// edge flag on
+		}
+	}
+	
+	if((detect & KEY_EDGE_DETECT) == KEY_EDGE_DETECT)
+	{
+		if(detect == KEY_RELEASE)
+		{
+			detect = pin_desc[index].pin;
+		}
+		else
+		{
+			detect = KEY_NONE; 
 		}
 	}
 	return detect;

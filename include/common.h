@@ -4,17 +4,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-
-#define VERSION_STRING "ver0.0.1"
-
-// configurations
-
-#define LOCAL_CH_MAX		2		// é©CAN CHêî
-#define GLOBAL_CH_MAX		2		// ëSCAN CHêî
-#define CMD_SOCKET_BASE		8000	// 
-#define ROUTING_TABLE_SIZE	32		//
-#define COUNT_MAX			9999	//
-#define TIMER_ID_MAX		2		// timerêî
+#include "config.h"
 
 // types
 #define CAN_ID_MAX			0x7FF	// Standard ID

@@ -113,7 +113,7 @@ void main(void)
 		menu_change(0);
 		while(true)
 		{
-			usleep(20*1000);
+			usleep(MENU_CYCLIC*1000);
 			menu();
 		}
 		
