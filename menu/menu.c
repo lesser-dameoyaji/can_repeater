@@ -1,22 +1,29 @@
 #include <stdio.h>
+#include <string.h>
 #include <wiringPi.h>
 
 #include "common.h"
 #include "menu.h"
 #include "lcd.h"
 
-
-extern unsigned int menu_title(unsigned int event);
-extern unsigned int menu_counter(unsigned int event);
+//
+// 
+//
+extern int menu_title(unsigned int event);
+extern int menu_counter(unsigned int event);
+extern int main_list(unsigned int event);
 
 menu_func* menu_table[] = {
 	menu_title,
 	menu_counter,
+	main_list,
 	NULL
 };
 
 #define MENU_ID_MAX (sizeof(menu_table)/sizeof(menu_func*) - 1)
 
+//
+static int menu_core(unsigned int event);
 
 // timer
 typedef struct {
@@ -34,11 +41,12 @@ timer_descriptor_t timer_table[TIMER_ID_MAX];
 #define KEY_ON			0x01
 #define KEY_OFF			0x00
 #define KEY_RELEASE		(KEY_EDGE_DETECT | KEY_OFF)
-#define KEY_PUSH		(KEY_EDGE_DETECT | KEY_ON)
+#define KEY_PRESS		(KEY_EDGE_DETECT | KEY_ON)
 
 typedef struct {
 	int pin;
 	unsigned char crcnt;
+	unsigned int lpcnt;
 	unsigned char prev_detect;
 } pin_descriptor_t;
 
@@ -49,6 +57,9 @@ unsigned char pin_read(int index);
 static unsigned int menu_id = 0xFFFF;
 unsigned int posted_event = NO_EVENT;
 
+//
+// basic interfaces
+//
 int menu_init(void)
 {
 	// LCD initialize
@@ -65,6 +76,8 @@ void menu_change(unsigned int next_id)
 	int i;
 	if((next_id < MENU_ID_MAX) && (menu_id != next_id))
 	{
+		menu_core(LEAVE);
+		
 		menu_id = next_id;
 		for(i=0; i<TIMER_ID_MAX; i++)
 			menu_timer_stop(i);
@@ -72,6 +85,9 @@ void menu_change(unsigned int next_id)
 	}
 }
 
+//
+// timer
+//
 void menu_timer_start(unsigned int timer_id, unsigned int count, bool cyclic)
 {
 	if (timer_id < TIMER_ID_MAX)
@@ -92,11 +108,112 @@ void menu_timer_stop(unsigned int timer_id)
 	}
 }
 
-static void menu_core(unsigned int event)
+//
+// list menu
+//
+int menu_list_draw(list_info_t* list_info)
+{
+	int i;
+	list_item_t* item;
+	
+	lcd_clear();
+	
+	// draw cursor
+	if(list_info->index_cursor == 0)
+	{
+		lcd_goto_xy(0,0);
+		lcd_putc(0x7e);
+		lcd_goto_xy(0,1);
+		lcd_putc(' ');
+	}
+	else
+	{
+		lcd_goto_xy(0,0);
+		lcd_putc(' ');
+		lcd_goto_xy(0,1);
+		lcd_putc(0x7e);
+	}
+	
+	item = list_info->items;
+	for(i=0; i<list_info->index; i++)
+	{
+		if(item == NULL)
+			return 0;
+		item = (list_item_t*)item->next;
+	}
+	
+	for(i=0; i<2; i++)
+	{
+		if((item == NULL) || (item->next == NULL))
+		{
+			break;
+		}
+		lcd_goto_xy(1,i);
+		lcd_printf("%s", item->name);
+		
+		item = (list_item_t*)item->next;
+	}
+	lcd_flush();
+	return 0;
+}
+
+int menu_list_exec(list_info_t* list_info, unsigned int event)
+{
+	int id = list_info->index + list_info->index_cursor;
+	int i;
+	list_item_t* item;
+	
+	item = list_info->items;
+	for(i=0; i<list_info->index; i++)
+	{
+		if(item == NULL)
+			return 0;
+		item = (list_item_t*)item->next;
+	}
+	
+	if((item != NULL) && (item->func != NULL))
+	{
+		return item->func(event);
+	}
+	return 0;
+}
+
+int menu_list_core(list_info_t* list_info, unsigned int event)
+{
+	switch(event)
+	{
+	case ENTER:
+//		break;
+	case DRAW:
+		menu_list_draw(list_info);
+		break;
+	case TIMEOUT0:
+	case TIMEOUT1:
+		break;
+	case KEY_L:
+	case KEY_R:
+		menu_list_exec(list_info, event);
+		break;
+	case KEY_U:
+	case KEY_D:
+	case KEY_LP_L:
+	case KEY_LP_R:
+	case KEY_LP_U:
+	case KEY_LP_D:
+		break;
+	case LEAVE:
+		break;
+	}
+}
+
+//
+// 
+//
+static int menu_core(unsigned int event)
 {
 	if(menu_id < MENU_ID_MAX)
 	{
-		(menu_table[menu_id])(event);
+		return (menu_table[menu_id])(event);
 	}
 }
 
@@ -108,7 +225,8 @@ int menu(void)
 	
 	if(posted_event != NO_EVENT)
 	{
-		menu_core(posted_event);
+		if(menu_core(posted_event) < 0)
+			return -1;
 		posted_event = NO_EVENT;
 	}
 	
@@ -119,7 +237,8 @@ int menu(void)
 		
 		if(event != NO_EVENT)
 		{
-			menu_core(event);
+			if(menu_core(event) < 0)
+				return -1;
 		}
 	}
 	
@@ -137,6 +256,8 @@ int menu(void)
 		}
 	}
 	lcd_flush();
+	
+	return 0;
 }
 
 //
@@ -212,12 +333,30 @@ unsigned char pin_read(int index)
 	{
 		if(detect == KEY_RELEASE)
 		{
+			// key release
 			detect = pin_desc[index].pin;
 		}
 		else
 		{
+			// key press
 			detect = KEY_NONE; 
 		}
+	}
+	else if((detect & KEY_ON) == KEY_ON)
+	{
+		if(pin_desc[index].lpcnt <= MENU_KEY_LONG_PRESS)
+		{
+			pin_desc[index].lpcnt++;
+		}
+		if(pin_desc[index].lpcnt == MENU_KEY_LONG_PRESS)
+		{
+			detect = pin_desc[index].pin + 1;
+		}
+
+	}
+	else
+	{
+		pin_desc[index].lpcnt = 0;
 	}
 	return detect;
 }

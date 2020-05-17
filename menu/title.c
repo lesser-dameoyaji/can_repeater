@@ -4,7 +4,7 @@
 #include "menu.h"
 #include "lcd.h"
 
-unsigned int menu_title(unsigned int event)
+int menu_title(unsigned int event)
 {
 	switch(event)
 	{
@@ -19,7 +19,7 @@ unsigned int menu_title(unsigned int event)
 		break;
 	case TIMEOUT0:
 		printf("TIMEOUT0\n");
-		menu_change(1);
+		menu_change(MENU_COUNTER);
 		break;
 	}
 	return 0;

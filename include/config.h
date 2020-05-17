@@ -12,4 +12,4 @@
 
 #define MENU_CYCLIC				20		// menu呼び出し周期、keyサンプリング周期(ms)
 #define MENU_KEY_REDUCE_CHATTER	2		// keyチャッター除去 = (keyサンプリング周期 * 左値)ms間レベル維持で確定
-#define MENU_KEY_LONG_PRESS		100		// key長押し確定 = (keyサンプリング周期 * 左値)ms間レベル維持で確定
+#define MENU_KEY_LONG_PRESS		50		// key長押し確定 = (keyサンプリング周期 * 左値)ms間レベル維持で確定

@@ -114,7 +114,8 @@ void main(void)
 		while(true)
 		{
 			usleep(MENU_CYCLIC*1000);
-			menu();
+			if(menu() < 0)
+				break;
 		}
 		
 		// wait thread end.

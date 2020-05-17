@@ -4,7 +4,7 @@
 #include "menu.h"
 #include "lcd.h"
 
-unsigned int menu_counter(unsigned int event)
+int menu_counter(unsigned int event)
 {
 	int id, update=0;
 	static int tx_count[LOCAL_CH_MAX], rx_count[LOCAL_CH_MAX];
@@ -37,6 +37,22 @@ unsigned int menu_counter(unsigned int event)
 		}
 		if(update > 0)
 			lcd_flush();
+		break;
+	case KEY_D:
+		menu_change(MENU_MAIN_LIST);
+		break;
+	case KEY_U:
+	case KEY_R:
+	case KEY_L:
+		printf("KEY%d\n", event);
+		break;
+	case KEY_LP_U:
+	case KEY_LP_D:
+	case KEY_LP_R:
+	case KEY_LP_L:
+		printf("KEY%d LONG\n", event);
+		break;
+	
 	}
 	return 0;
 }
