@@ -9,9 +9,9 @@
 //
 // 
 //
-extern int menu_title(unsigned int event);
-extern int menu_counter(unsigned int event);
-extern int main_list(unsigned int event);
+extern int menu_title(int event);
+extern int menu_counter(int event);
+extern int main_list(int event);
 
 menu_func* menu_table[] = {
 	menu_title,
@@ -23,7 +23,20 @@ menu_func* menu_table[] = {
 #define MENU_ID_MAX (sizeof(menu_table)/sizeof(menu_func*) - 1)
 
 //
-static int menu_core(unsigned int event);
+#define EVENT_QUE_DEPTH		16
+typedef struct {
+	int in;
+	int out;
+	int count;
+} event_queue_t;
+static event_queue_t event_que;
+static int event_que_buf[EVENT_QUE_DEPTH];
+
+static int event_que_init(void);
+static int event_que_in(int val);
+static int event_que_out(int* val);
+static int event_que_count(void);
+static int menu_core(int event);
 
 // timer
 typedef struct {
@@ -57,6 +70,39 @@ unsigned char pin_read(int index);
 static unsigned int menu_id = 0xFFFF;
 unsigned int posted_event = NO_EVENT;
 
+static int event_que_init(void)
+{
+	event_que.in = 0;
+	event_que.out = 0;
+	event_que.count = 0;
+}
+static int event_que_in(int val)
+{
+	if(event_que.count >= EVENT_QUE_DEPTH)
+		return -1;
+	event_que_buf[event_que.in] = val;
+	event_que.in++;
+	event_que.count++;
+	
+	if(event_que.in >= EVENT_QUE_DEPTH)
+		event_que.in = 0;
+}
+static int event_que_out(int* val)
+{
+	if(event_que.count == 0)
+		return -1;
+		
+	*val = event_que_buf[event_que.out];
+	event_que.out++;
+	event_que.count--;
+	
+	if(event_que.out >= EVENT_QUE_DEPTH)
+		event_que.out = 0;
+}
+static int event_que_count(void)
+{
+	return event_que.count;
+}
 //
 // basic interfaces
 //
@@ -76,12 +122,12 @@ void menu_change(unsigned int next_id)
 	int i;
 	if((next_id < MENU_ID_MAX) && (menu_id != next_id))
 	{
-		menu_core(LEAVE);
+		event_que_in(LEAVE);
 		
 		menu_id = next_id;
 		for(i=0; i<TIMER_ID_MAX; i++)
 			menu_timer_stop(i);
-		posted_event = ENTER;
+		event_que_in(ENTER);
 	}
 }
 
@@ -121,16 +167,16 @@ int menu_list_draw(list_info_t* list_info)
 	// draw cursor
 	if(list_info->index_cursor == 0)
 	{
-		lcd_goto_xy(0,0);
+		lcd_cursor(0,0, false);
 		lcd_putc(0x7e);
-		lcd_goto_xy(0,1);
+		lcd_cursor(0,1, false);
 		lcd_putc(' ');
 	}
 	else
 	{
-		lcd_goto_xy(0,0);
+		lcd_cursor(0,0, false);
 		lcd_putc(' ');
-		lcd_goto_xy(0,1);
+		lcd_cursor(0,1, false);
 		lcd_putc(0x7e);
 	}
 	
@@ -148,7 +194,7 @@ int menu_list_draw(list_info_t* list_info)
 		{
 			break;
 		}
-		lcd_goto_xy(1,i);
+		lcd_cursor(1,i, false);
 		lcd_printf("%s", item->name);
 		
 		item = (list_item_t*)item->next;
@@ -157,14 +203,14 @@ int menu_list_draw(list_info_t* list_info)
 	return 0;
 }
 
-int menu_list_exec(list_info_t* list_info, unsigned int event)
+int menu_list_exec(list_info_t* list_info, int event)
 {
-	int id = list_info->index + list_info->index_cursor;
+	int idx = list_info->index + list_info->index_cursor;
 	int i;
 	list_item_t* item;
 	
 	item = list_info->items;
-	for(i=0; i<list_info->index; i++)
+	for(i=0; i<idx; i++)
 	{
 		if(item == NULL)
 			return 0;
@@ -178,7 +224,7 @@ int menu_list_exec(list_info_t* list_info, unsigned int event)
 	return 0;
 }
 
-int menu_list_core(list_info_t* list_info, unsigned int event)
+int menu_list_core(list_info_t* list_info, int event)
 {
 	switch(event)
 	{
@@ -195,7 +241,56 @@ int menu_list_core(list_info_t* list_info, unsigned int event)
 		menu_list_exec(list_info, event);
 		break;
 	case KEY_U:
+		if(list_info->index_cursor == 0)
+		{
+			// カーソルは最上行
+			if(list_info->index == 0)
+			{
+				// 更にリスト上端 → 前画面へ
+				menu_change(MENU_COUNTER);
+			}
+			else
+			{
+				// リストを下スクロール
+				list_info->index--;
+				event_que_in(DRAW);
+			}
+		}
+		else
+		{
+			list_info->index_cursor--;
+			event_que_in(DRAW);
+		}
+		break;
 	case KEY_D:
+		if(list_info->index_cursor == 1)
+		{
+			// カーソルは下行
+			// リストを上スクロール
+			list_info->index++;
+			if(list_info->index == (list_info->items_num-1))
+			{
+				// リスト下端 に到達 → カーソルも上行へ
+				list_info->index_cursor = 0;
+			}
+			event_que_in(DRAW);
+		}
+		else
+		{
+			// カーソルは上行
+			if(list_info->index == (list_info->items_num-1))
+			{
+				// 下に表示するitemなし → 無視
+				printf("ignored\n");
+			}
+			else
+			{
+				// カーソル下移動
+				list_info->index_cursor++;
+				event_que_in(DRAW);
+			}
+		}
+		break;
 	case KEY_LP_L:
 	case KEY_LP_R:
 	case KEY_LP_U:
@@ -209,7 +304,7 @@ int menu_list_core(list_info_t* list_info, unsigned int event)
 //
 // 
 //
-static int menu_core(unsigned int event)
+static int menu_core(int event)
 {
 	if(menu_id < MENU_ID_MAX)
 	{
@@ -221,14 +316,7 @@ int menu(void)
 {
 	int i;
 	unsigned int btn = 0;
-	unsigned int event = NO_EVENT;
-	
-	if(posted_event != NO_EVENT)
-	{
-		if(menu_core(posted_event) < 0)
-			return -1;
-		posted_event = NO_EVENT;
-	}
+	int event = NO_EVENT;
 	
 	for(i=0; i<4; i++)
 	{
@@ -237,8 +325,7 @@ int menu(void)
 		
 		if(event != NO_EVENT)
 		{
-			if(menu_core(event) < 0)
-				return -1;
+			event_que_in(event);
 		}
 	}
 	
@@ -250,10 +337,18 @@ int menu(void)
 		timer_table[i].count++;
 		if(timer_table[i].count >= timer_table[i].count_max)
 		{
-			menu_core(TIMER_BASE+i);
+			event_que_in(TIMER_BASE+i);
 			timer_table[i].count = 0;
 			timer_table[i].enable = timer_table[i].cyclic;
 		}
+	}
+	
+	while(event_que_count() > 0)
+	{
+		if(event_que_out(&event) < 0)
+			break;
+		if(menu_core(event) < 0)
+			return -1;
 	}
 	lcd_flush();
 	

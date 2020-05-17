@@ -4,7 +4,7 @@
 #include "menu.h"
 #include "lcd.h"
 
-int menu_title(unsigned int event)
+int menu_title(int event)
 {
 	switch(event)
 	{

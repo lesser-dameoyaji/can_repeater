@@ -4,7 +4,7 @@
 #include "menu.h"
 #include "lcd.h"
 
-int menu_counter(unsigned int event)
+int menu_counter(int event)
 {
 	int id, update=0;
 	static int tx_count[LOCAL_CH_MAX], rx_count[LOCAL_CH_MAX];
