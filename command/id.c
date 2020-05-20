@@ -5,6 +5,8 @@
 #include "common.h"
 #include "rpt.h"
 
+// “]‘—ƒRƒ}ƒ“ƒh
+
 void cmd_id(int id, int argc, void** argv)
 {
 	int dst_id;
@@ -32,5 +34,5 @@ void cmd_id(int id, int argc, void** argv)
 	
 	data = (char*)argv[2];
 	
-	send_command(dst_id, data, strlen(data));
+	send_command(id, dst_id, data, strlen(data));
 }

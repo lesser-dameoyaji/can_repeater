@@ -53,16 +53,16 @@ static int open_client_socket(void)
 	return fd;
 }
 
-int send_command(int id, char* data, int len)
+int send_command(int id, int dst_id, char* data, int len)
 {
-	if(sendto(self_cli_handle, data, len, 0, (struct sockaddr *)&self.server_addr, sizeof(self.server_addr)) < 0)
+	if(sendto(self_cli_handle, data, len, 0, (struct sockaddr *)&selfs[dst_id].server_addr, sizeof(selfs[dst_id].server_addr)) < 0)
 	{
 		return -1;
 	}
 	return 0;
 }
 
-int send_frame(int dst_id, canid_t can_id, unsigned char dlc, unsigned char* data)
+int send_frame(int id, int dst_id, canid_t can_id, unsigned char dlc, unsigned char* data)
 {
 	char cmd_buf[32];
 	
@@ -95,7 +95,7 @@ int send_frame(int dst_id, canid_t can_id, unsigned char dlc, unsigned char* dat
 	default:
 		return -1;
 	}
-	if(send_command(dst_id, cmd_buf, strlen(cmd_buf)) < 0)
+	if(send_command(id, dst_id, cmd_buf, strlen(cmd_buf)) < 0)
 	{
 		return -1;
 	}
@@ -219,7 +219,7 @@ static void* thread_main(void* arg)
 							printf("%d drop\n", id);
 						else
 						{
-							if(send_frame(self.routing_table[i].dst_id, frame.can_id, frame.can_dlc, &frame.data[0]) < 0)
+							if(send_frame(id, self.routing_table[i].dst_id, frame.can_id, frame.can_dlc, &frame.data[0]) < 0)
 								printf("send frame failed\n");
 						}
 					}

@@ -79,7 +79,7 @@ static void configure(void)
 			break;
 		}
 		printf("config: %d: %s\n", len, buf);
-		send_command(0, buf, strlen(buf));
+		send_command(0, 0, buf, strlen(buf));
 	}
 	close(fd);
 }
