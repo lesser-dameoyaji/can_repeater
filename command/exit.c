@@ -1,5 +1,5 @@
 #include "common.h"
-#include "rpt.h"
+#include "command.h"
 
 extern void cmd_csock_ifdown(int id);
 extern void cmd_csock_close(int id);

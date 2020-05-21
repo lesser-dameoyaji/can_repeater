@@ -34,5 +34,25 @@ void cmd_thread(int id, int argc, void** argv)
 			printf("thread%d has child thread\n", id);
 		}
 	}
+	else if(strcmp("status", command)==0)
+	{
+		char buf[32];
+
+		if(self.status >= STATUS_RUN)
+		{
+			sprintf(buf, "thread create");
+		}
+		else
+		{
+			sprintf(buf, "");
+		}
+		printf("%s\n", buf);
+		
+		if((argc > 3) && (strcmp("save", (char*)argv[2])==0))
+		{
+			config_write(buf, strlen(buf));
+		}
+	}
+
 }
 

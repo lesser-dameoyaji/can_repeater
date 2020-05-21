@@ -1,5 +1,5 @@
 #include "common.h"
-#include "rpt.h"
+#include "command.h"
 
 int menu_exit(int event)
 {

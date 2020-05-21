@@ -1,4 +1,7 @@
+#include <stdio.h>
+
 #include "common.h"
+#include "command.h"
 #include "rpt.h"
 
 extern void cmd_csock_ifdown(int id);
@@ -23,6 +26,12 @@ void cmd_reset(int id, int argc, void** argv)
 	{
 		cmd_csock_ifdown(id);
 		self.status = STATUS_RUN;
+	}
+	
+	if(is_need_response(id, "reset") == true)
+	{
+		printf("send response\n");
+		send_response(id, "OK", 2);
 	}
 	return;
 }

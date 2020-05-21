@@ -1,15 +1,24 @@
-#define VERSION_STRING "ver0.0.1"
+ï»¿#define VERSION_STRING "ver0.0.1"
 
 // configurations
 
-#define LOCAL_CH_MAX			2		// ©CAN CH”
-#define GLOBAL_CH_MAX			2		// ‘SCAN CH”
+#define LOCAL_CH_MAX			2		// è‡ªCAN CHæ•°
+#define GLOBAL_CH_MAX			2		// å…¨CAN CHæ•°
 #define CMD_SOCKET_BASE			8000	// 
 #define ROUTING_TABLE_SIZE		32		// 
-#define COUNT_MAX				9999	// CAN TX/RX counter Å‘å’l
-#define TIMER_ID_MAX			2		// timer”
+#define COUNT_MAX				9999	// CAN TX/RX counter æœ€å¤§å€¤
+#define TIMER_ID_MAX			2		// timeræ•°
+
+#define ARGUMENT_MAX 16			// used by parser
+
+#define MENU_CYCLIC				20		// menuå‘¼ã³å‡ºã—å‘¨æœŸã€keyã‚µãƒ³ãƒ—ãƒªãƒ³ã‚°å‘¨æœŸ(ms)
+#define MENU_KEY_REDUCE_CHATTER	2		// keyãƒãƒ£ãƒƒã‚¿ãƒ¼é™¤å» = (keyã‚µãƒ³ãƒ—ãƒªãƒ³ã‚°å‘¨æœŸ * å·¦å€¤)msé–“ãƒ¬ãƒ™ãƒ«ç¶­æŒã§ç¢ºå®š
+#define MENU_KEY_LONG_PRESS		50		// keyé•·æŠ¼ã—ç¢ºå®š = (keyã‚µãƒ³ãƒ—ãƒªãƒ³ã‚°å‘¨æœŸ * å·¦å€¤)msé–“ãƒ¬ãƒ™ãƒ«ç¶­æŒã§ç¢ºå®š
 
 
-#define MENU_CYCLIC				20		// menuŒÄ‚Ño‚µüŠúAkeyƒTƒ“ƒvƒŠƒ“ƒOüŠú(ms)
-#define MENU_KEY_REDUCE_CHATTER	2		// keyƒ`ƒƒƒbƒ^[œ‹ = (keyƒTƒ“ƒvƒŠƒ“ƒOüŠú * ¶’l)msŠÔƒŒƒxƒ‹ˆÛ‚ÅŠm’è
-#define MENU_KEY_LONG_PRESS		50		// key’·‰Ÿ‚µŠm’è = (keyƒTƒ“ƒvƒŠƒ“ƒOüŠú * ¶’l)msŠÔƒŒƒxƒ‹ˆÛ‚ÅŠm’è
+int config_open(char *fname);
+int config_write(char *buf, int length);
+int config_read(char *buf, int buf_size);
+int config_close(void);
+
+

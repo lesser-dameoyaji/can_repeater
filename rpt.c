@@ -53,15 +53,6 @@ static int open_client_socket(void)
 	return fd;
 }
 
-int send_command(int id, int dst_id, char* data, int len)
-{
-	if(sendto(self_cli_handle, data, len, 0, (struct sockaddr *)&selfs[dst_id].server_addr, sizeof(selfs[dst_id].server_addr)) < 0)
-	{
-		return -1;
-	}
-	return 0;
-}
-
 int send_frame(int id, int dst_id, canid_t can_id, unsigned char dlc, unsigned char* data)
 {
 	char cmd_buf[32];
@@ -130,7 +121,6 @@ int thread_start(int id)
 static void* thread_main(void* arg)
 {
 	int id = (int)arg;
-	struct sockaddr_in from;
 	int ret, l, from_len, i;
 	char buf[BUF_SIZE];
 	struct can_frame frame;
@@ -179,8 +169,8 @@ static void* thread_main(void* arg)
 			if(self_svr_handle.revents & POLLIN)
 			{
 				// command received
-				from_len = sizeof(from);
-				l = recvfrom(self_svr_handle.fd, buf, BUF_SIZE, 0, (struct sockaddr *)&from, &from_len);
+				from_len = sizeof(self_from_addr);
+				l = recvfrom(self_svr_handle.fd, buf, BUF_SIZE, 0, (struct sockaddr *)&self_from_addr, &from_len);
 				buf[l] = 0;
 /*				if(l < 0)
 				{

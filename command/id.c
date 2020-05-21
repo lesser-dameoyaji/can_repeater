@@ -1,11 +1,11 @@
-#include <stdio.h>
+ï»¿#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "common.h"
-#include "rpt.h"
+#include "command.h"
 
-// “]‘—ƒRƒ}ƒ“ƒh
+// è»¢é€ã‚³ãƒãƒ³ãƒ‰
 
 void cmd_id(int id, int argc, void** argv)
 {

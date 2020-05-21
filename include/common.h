@@ -28,8 +28,12 @@ typedef struct {
 	
 	struct pollfd server_handles[2];			// server socket handle. [0]command(UDP), [1]can rx
 	struct sockaddr_in server_addr;				// used by client
+	struct sockaddr_in from_addr;				// 
 	int client_handle;
 	int nfd;
+	
+	void* cmd_argv[ARGUMENT_MAX];
+	int cmd_argc;
 	
 	int tx_count;
 	int rx_count;
@@ -57,4 +61,6 @@ extern self_t selfs[GLOBAL_CH_MAX];
 #define self_svr_handle		self.server_handles[IDX_SVH_SOCK]
 #define self_can_handle		self.server_handles[IDX_SVH_CAN]
 #define self_cli_handle		self.client_handle
-
+#define self_from_addr		self.from_addr
+#define self_argc			self.cmd_argc
+#define self_argv			self.cmd_argv
