@@ -20,7 +20,7 @@ static void* thread_main(void* arg);
 //
 // SOCKET
 //
-static int open_server_socket(int port)
+int open_server_socket(int port)
 {
 	int fd;
 	struct sockaddr_in addr;
@@ -41,7 +41,7 @@ static int open_server_socket(int port)
 	return fd;
 }
 
-static int open_client_socket(void)
+int open_client_socket(void)
 {
 	int fd;
 	

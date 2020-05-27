@@ -37,12 +37,7 @@ void main(void)
 		configure();
 		
 		menu_change(0);
-		while(true)
-		{
-			usleep(MENU_CYCLIC*1000);
-			if(menu() < 0)
-				break;
-		}
+		menu();
 		
 		// wait thread end.
 		pthread_join(thread_handle, NULL);

@@ -8,3 +8,5 @@ bool is_need_response(int id, char* cmd_str);
 
 int send_command(int id, int dst_id, char* data, int len);
 int send_response(int id, char* data, int len);
+
+void configure(void);

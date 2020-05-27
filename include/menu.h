@@ -2,11 +2,12 @@
 #define MENU_TITLE		0
 #define MENU_COUNTER	1
 #define MENU_MAIN_LIST	2
-
+#define MENU_LOAD		3
 // events
 #define NO_EVENT	0
 #define ENTER		1
 #define DRAW		2
+#define RECEIVE		3
 #define LEAVE		9
 #define TIMER_BASE	10
 #define TIMEOUT0	(TIMER_BASE+0)
@@ -36,6 +37,8 @@ typedef struct {
 	int items_num;
 	list_item_t* items;
 } list_info_t;
+
+extern char menu_socket_buf[256];
 
 int menu_init(void);
 int menu(void);

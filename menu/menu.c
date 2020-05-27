@@ -1,10 +1,14 @@
 #include <stdio.h>
+#include <unistd.h>
 #include <string.h>
+#include <errno.h>
+#include <netdb.h>
 #include <wiringPi.h>
 
 #include "common.h"
 #include "menu.h"
 #include "lcd.h"
+#include "rpt.h"
 
 //
 // 
@@ -12,11 +16,13 @@
 extern int menu_title(int event);
 extern int menu_counter(int event);
 extern int main_list(int event);
+extern int menu_load(int event);
 
 menu_func* menu_table[] = {
 	menu_title,
 	menu_counter,
 	main_list,
+	menu_load,
 	NULL
 };
 
@@ -68,7 +74,7 @@ int pin_init(void);
 unsigned char pin_read(int index);
 
 static unsigned int menu_id = 0xFFFF;
-unsigned int posted_event = NO_EVENT;
+char menu_socket_buf[256];
 
 static int event_que_init(void)
 {
@@ -238,7 +244,7 @@ int menu_list_core(list_info_t* list_info, int event)
 		break;
 	case KEY_L:
 	case KEY_R:
-		menu_list_exec(list_info, event);
+		menu_list_exec(list_info, ENTER);
 		break;
 	case KEY_U:
 		if(list_info->index_cursor == 0)
@@ -314,44 +320,71 @@ static int menu_core(int event)
 
 int menu(void)
 {
-	int i;
+	int i, loop=true, from_len, l, ret;
 	unsigned int btn = 0;
 	int event = NO_EVENT;
+	struct pollfd server_handle;
+	struct sockaddr_in from_addr;
 	
-	for(i=0; i<4; i++)
+	server_handle.fd = open_server_socket(CMD_SOCKET_BASE-1);
+	server_handle.events = POLLIN;
+	if (server_handle.fd < 0)
 	{
-		// button priority L<R<U<D
-		event = pin_read(i);
+		printf("create socket error\n");
+		return -1;
+	}
+	
+	while(loop == true)
+	{
+		ret = poll(&server_handle, 1, MENU_CYCLIC);
+		if(ret > 0)
+		{
+			// 
+			from_len = sizeof(from_addr);
+			l = recvfrom(server_handle.fd, menu_socket_buf, 256, 0, (struct sockaddr *)&from_addr, &from_len);
+			menu_socket_buf[l] = 0;
+			event_que_in(RECEIVE);
+		}
+		else
+		{
+			for(i=0; i<4; i++)
+			{
+				// button priority L<R<U<D
+				event = pin_read(i);
+				
+				if(event != NO_EVENT)
+				{
+					event_que_in(event);
+				}
+			}
+			
+			for(i=0; i<TIMER_ID_MAX; i++)
+			{
+				// timer process
+				if(timer_table[i].enable == false)
+					continue;
+				timer_table[i].count++;
+				if(timer_table[i].count >= timer_table[i].count_max)
+				{
+					event_que_in(TIMER_BASE+i);
+					timer_table[i].count = 0;
+					timer_table[i].enable = timer_table[i].cyclic;
+				}
+			}
+		}
 		
-		if(event != NO_EVENT)
+		while(event_que_count() > 0)
 		{
-			event_que_in(event);
+			if(event_que_out(&event) < 0)
+				break;
+			if(menu_core(event) < 0)
+			{
+				loop = false;
+				break;
+			}
 		}
+		lcd_flush();
 	}
-	
-	for(i=0; i<TIMER_ID_MAX; i++)
-	{
-		// timer process
-		if(timer_table[i].enable == false)
-			continue;
-		timer_table[i].count++;
-		if(timer_table[i].count >= timer_table[i].count_max)
-		{
-			event_que_in(TIMER_BASE+i);
-			timer_table[i].count = 0;
-			timer_table[i].enable = timer_table[i].cyclic;
-		}
-	}
-	
-	while(event_que_count() > 0)
-	{
-		if(event_que_out(&event) < 0)
-			break;
-		if(menu_core(event) < 0)
-			return -1;
-	}
-	lcd_flush();
-	
 	return 0;
 }
 
