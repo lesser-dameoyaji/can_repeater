@@ -13,6 +13,7 @@ void cmd_count(int id, int argc, void** argv);
 void cmd_thread(int id, int argc, void** argv);
 void cmd_reset(int id, int argc, void** argv);
 void cmd_load(int id, int argc, void** argv);
+void cmd_save(int id, int argc, void** argv);
 void cmd_exit(int id, int argc, void** argv);
 
 typedef struct {
@@ -32,6 +33,7 @@ static cmd_table_t cmd_table[] = {
 	{"count", cmd_count, false},
 	{"reset", cmd_reset, false},
 	{"load", cmd_load, false},
+	{"save", cmd_save, false},
 	{"exit", cmd_exit, false},
 	{NULL, NULL}
 };
@@ -126,6 +128,7 @@ int send_command(int id, int dst_id, char* data, int len)
 
 int send_response(int id, char* data, int len)
 {
+//	printf("send resp: %x,%d\n", self_from_addr.sin_addr.s_addr, self_from_addr.sin_port);
 	if(sendto(self_cli_handle, data, len, 0, (struct sockaddr *)&self_from_addr, sizeof(self_from_addr)) < 0)
 	{
 		return -1;
@@ -182,11 +185,18 @@ void commander(int id, char* buf)
 				}
 				else if(postfix[0] == 'r')
 				{
-					src_id = postfix[1] - '0';
-					if((0 <= src_id) && (src_id < GLOBAL_CH_MAX))
+					if(postfix[1] > '0')
 					{
-						self_from_addr.sin_port = htons(selfs[src_id].cmd_port);
-						printf("command:%s, response:%d\n", (char*)self_argv[0], selfs[src_id].cmd_port);
+						src_id = postfix[1] - '0';
+						if((0 <= src_id) && (src_id < GLOBAL_CH_MAX))
+						{
+							self_from_addr.sin_port = htons(selfs[src_id].cmd_port);
+							printf("command:%s, response:%d\n", (char*)self_argv[0], selfs[src_id].cmd_port);
+						}
+					}
+					else
+					{
+						self_from_addr.sin_port += htons(1);
 					}
 				}
 			}

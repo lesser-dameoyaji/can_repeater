@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "common.h"
+#include "command.h"
 
 void cmd_route(int id, int argc, void** argv)
 {
@@ -25,18 +26,19 @@ void cmd_route(int id, int argc, void** argv)
 		printf("too few argument to delete routing table\n");
 		return;
 	}
-	can_id = strtol((char*)argv[2], NULL, 16);
-	if(can_id > CAN_ID_MAX)
-	{
-		printf("invalid id\n");
-		return;
-	}
 	
 	if (strcmp("set", command)==0)
 	{
 		if(argc < 5)
 		{
 			printf("too few argument to set routing table\n");
+			return;
+		}
+		
+		can_id = strtol((char*)argv[2], NULL, 16);
+		if(can_id > CAN_ID_MAX)
+		{
+			printf("invalid id\n");
 			return;
 		}
 		
@@ -59,6 +61,12 @@ void cmd_route(int id, int argc, void** argv)
 	}
 	else if(strcmp("del", command)==0)
 	{
+		can_id = strtol((char*)argv[2], NULL, 16);
+		if(can_id > CAN_ID_MAX)
+		{
+			printf("invalid id\n");
+			return;
+		}
 		
 		for(i=1; i<=self.routing_table_count; i++)
 		{
@@ -91,6 +99,13 @@ void cmd_route(int id, int argc, void** argv)
 	}
 	else if(strcmp("enable", command)==0)
 	{
+		can_id = strtol((char*)argv[2], NULL, 16);
+		if(can_id > CAN_ID_MAX)
+		{
+			printf("invalid id\n");
+			return;
+		}
+		
 		for(i=1; i<=self.routing_table_count; i++)
 		{
 			if(self.routing_table[i].id == can_id)
@@ -105,6 +120,13 @@ void cmd_route(int id, int argc, void** argv)
 	}
 	else if(strcmp("disable", command)==0)
 	{
+		can_id = strtol((char*)argv[2], NULL, 16);
+		if(can_id > CAN_ID_MAX)
+		{
+			printf("invalid id\n");
+			return;
+		}
+		
 		for(i=1; i<=self.routing_table_count; i++)
 		{
 			if(self.routing_table[i].id == can_id)
@@ -119,5 +141,34 @@ void cmd_route(int id, int argc, void** argv)
 	}
 	else if(strcmp("stat", command)==0)
 	{
+		int start, end;		// 
+		char buf[256];
+		
+		if(strcmp("all", (char*)argv[3])==0)
+		{
+			start = 0;
+			end = self.routing_table_count;
+		}
+		else
+		{
+			dst_id = strtol((char*)argv[2], NULL, 10);
+			start = dst_id;
+			end = dst_id + 1;
+		}
+		for (i=start; i < end; i++)
+		{
+			sprintf(buf, "route set %03X %03X %X", self.routing_table[i].id,  self.routing_table[i].id_mask, self.routing_table[i].dst_id);
+			
+			// send response
+			if(is_need_response(id, "route") == true)
+			{
+				sprintf(buf, "%s\r", buf);
+				send_response(id, buf, strlen(buf));
+			}
+			else
+			{
+				printf("%s\n", buf);
+			}
+		}
 	}
 }

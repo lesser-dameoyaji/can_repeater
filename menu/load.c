@@ -24,7 +24,7 @@ int menu_load(int event)
 		break;
 	case RECEIVE:
 		menu_timer_start(0, 50, false);
-		if(strncmp("OK", menu_socket_buf, 2)==0)
+		if(strncmp("reset complete", menu_socket_buf, 14)==0)
 		{
 			lcd_cursor(0, 0, false);
 			lcd_printf("reconfig");

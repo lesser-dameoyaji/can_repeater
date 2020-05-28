@@ -17,12 +17,14 @@ extern int menu_title(int event);
 extern int menu_counter(int event);
 extern int main_list(int event);
 extern int menu_load(int event);
+extern int menu_save(int event);
 
 menu_func* menu_table[] = {
 	menu_title,
 	menu_counter,
 	main_list,
 	menu_load,
+	menu_save,
 	NULL
 };
 

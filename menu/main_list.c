@@ -5,13 +5,14 @@
 
 extern int menu_save(int event);
 extern int menu_load_enter(int event);
+extern int menu_save_enter(int event);
 extern int menu_exit(int event);
 
 list_item_t main_list_items[] = {
-	{&main_list_items[1], "send", menu_save},
-	{&main_list_items[2], "filter", menu_save},
+	{&main_list_items[1], "send", menu_exit},
+	{&main_list_items[2], "filter", menu_exit},
 	{&main_list_items[3], "load", menu_load_enter},
-	{&main_list_items[4], "save", menu_save},
+	{&main_list_items[4], "save", menu_save_enter},
 	{&main_list_items[5], "exit", menu_exit},
 	{NULL, NULL, NULL}
 };

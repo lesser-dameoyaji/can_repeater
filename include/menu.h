@@ -3,6 +3,7 @@
 #define MENU_COUNTER	1
 #define MENU_MAIN_LIST	2
 #define MENU_LOAD		3
+#define MENU_SAVE		4
 // events
 #define NO_EVENT	0
 #define ENTER		1

@@ -28,10 +28,10 @@ void cmd_reset(int id, int argc, void** argv)
 		self.status = STATUS_RUN;
 	}
 	
+	// send response
 	if(is_need_response(id, "reset") == true)
 	{
-		printf("send response\n");
-		send_response(id, "OK", 2);
+		send_response(id, "reset complete", 2);
 	}
 	return;
 }
