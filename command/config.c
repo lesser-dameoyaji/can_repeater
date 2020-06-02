@@ -126,4 +126,29 @@ void cmd_load(int id, int argc, void** argv)
 
 void cmd_save(int id, int argc, void** argv)
 {
+	int ch, i;
+	void* tmp_argv[] = {NULL, (void*)"stat", (void*)"all"};
+	
+	for(ch=0; ch<GLOBAL_CH_MAX; ch++)
+	{
+		for(i=0; i<get_command_table_size(); i++)
+		{
+			if(is_need_save_command(i) == false)
+			{
+				continue;
+			}
+			tmp_argv[0] = (void*)get_command_name(i);
+			if(get_command_func(i) == NULL)
+			{
+				printf("NULL function %d %d\n", ch, i);
+				continue;
+			}
+//			printf("call function %d %d\n", ch, i);
+			(get_command_func(i))(id, 3, tmp_argv);
+		}
+	}
+	if(is_need_response(id, "save") == true)
+	{
+		send_response(id, "save OK", 7);
+	}
 }

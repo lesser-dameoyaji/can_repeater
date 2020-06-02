@@ -23,6 +23,7 @@ typedef struct {
 
 typedef struct {
 	int id;
+	pthread_t thread_handle;
 	pthread_t child_thread_handle;
 	unsigned short cmd_port;					// server port number
 	

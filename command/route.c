@@ -144,7 +144,7 @@ void cmd_route(int id, int argc, void** argv)
 		int start, end;		// 
 		char buf[256];
 		
-		if(strcmp("all", (char*)argv[3])==0)
+		if(strcmp("all", (char*)argv[2])==0)
 		{
 			start = 0;
 			end = self.routing_table_count;

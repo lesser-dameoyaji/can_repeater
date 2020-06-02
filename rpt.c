@@ -115,6 +115,7 @@ int thread_start(int id)
 		return -1;
 	}
 	
+	self.thread_handle = thread_handle;
 	return thread_handle;
 }
 

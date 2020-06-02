@@ -4,7 +4,7 @@
 #include "command.h"
 #include "rpt.h"
 
-extern void cmd_csock_ifdown(int id);
+extern void cmd_interface_down(int id);
 extern void cmd_csock_close(int id);
 
 // thread reset command
@@ -24,7 +24,7 @@ void cmd_reset(int id, int argc, void** argv)
 	}
 	if(self.status == STATUS_RUN_IFUP)
 	{
-		cmd_csock_ifdown(id);
+		cmd_interface_down(id);
 		self.status = STATUS_RUN;
 	}
 	

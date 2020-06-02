@@ -1,4 +1,5 @@
 #include "common.h"
+#include "command.h"
 #include "cansock.h"
 
 void cmd_csock_open(int id)
@@ -45,44 +46,6 @@ void cmd_csock_close(int id)
 		self.status = STATUS_RUN_IFUP;
 }
 
-void cmd_csock_ifup(int id)
-{
-	char buf[63];
-	
-	if(self.status == STATUS_RUN)
-	{
-		sprintf(buf, "sudo ip link set can%d up type can bitrate 500000 restart-ms 100", id);
-		if(system(buf) < 0)
-		{
-			printf("can%d up fail\n", id);
-		}
-		else
-		{
-			printf("can%d up success\n", id);
-			self.status = STATUS_RUN_IFUP;
-		}
-	}
-}
-
-void cmd_csock_ifdown(int id)
-{
-	char buf[63];
-	
-	if(self.status >= STATUS_RUN_IFUP)
-	{
-		sprintf(buf, "sudo ip link set can%d down", id);
-		if(system(buf) < 0)
-		{
-			printf("can%d down fail\n", id);
-		}
-		else
-		{
-			printf("can%d down success\n", id);
-			self.status = STATUS_RUN;
-		}
-	}
-}
-
 
 void cmd_csock(int id, int argc, void** argv)
 {
@@ -103,15 +66,30 @@ void cmd_csock(int id, int argc, void** argv)
 	{
 		cmd_csock_close(id);
 	}
-	else if(strcmp("ifup", command)==0)
+	else if(strcmp("stat", command)==0)
 	{
-		cmd_csock_ifup(id);
+		char buf[32];
+		
+		if(self.status >= STATUS_RUN_IFUP)
+		{
+			sprintf(buf, "csock open");
+		}
+		else
+		{
+			sprintf(buf, "csock close");
+		}
+		
+		// send response
+		if(is_need_response(id, "csock")==true)
+		{
+			sprintf(buf, "%s\r", buf);
+			send_response(id, buf, strlen(buf));
+		}
+		else
+		{
+			printf("%s\n", buf);
+		}
 	}
-	else if(strcmp("ifdown", command)==0)
-	{
-		cmd_csock_ifdown(id);
-	}
-	
 	return;
 }
 

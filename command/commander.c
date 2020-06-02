@@ -1,10 +1,13 @@
 ﻿#include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "common.h"
 #include "command.h"
+#include "rpt.h"
 
 void cmd_csock(int id, int argc, void** argv);
+void cmd_interface(int id, int argc, void** argv);
 void cmd_id(int id, int argc, void** argv);
 void cmd_send(int id, int argc, void** argv);
 void cmd_route(int id, int argc, void** argv);
@@ -24,12 +27,13 @@ typedef struct {
 
 //
 static cmd_table_t cmd_table[] = {
-	{"thread", cmd_thread, true},
+	{"thread", cmd_thread, false},
+	{"interface", cmd_interface, true},
 	{"csock", cmd_csock, true},
 	{"echo", cmd_echo, false},
 	{"id", cmd_id, false},
 	{"send", cmd_send, false},
-	{"route", cmd_route, false},
+	{"route", cmd_route, true},
 	{"count", cmd_count, false},
 	{"reset", cmd_reset, false},
 	{"load", cmd_load, false},
@@ -37,6 +41,8 @@ static cmd_table_t cmd_table[] = {
 	{"exit", cmd_exit, false},
 	{NULL, NULL}
 };
+#define cmd_table_size (sizeof(cmd_table)/sizeof(cmd_table_t)-1)
+
 
 // 文字列から文字を検索する
 int chrchrs(char c, char* cs)
@@ -117,8 +123,43 @@ void parser(int id, char* buf)
 	}
 }
 
+static int wakeup_thread(int id)
+{
+	pthread_t thread_handle;
+	
+	if(self.status < STATUS_RUN)
+	{
+		// thread start
+		thread_handle = thread_start(id);
+	
+		if (thread_handle < 0)
+		{
+			printf("faile to create self thread %d\n", id);
+			return -1;
+		}
+		// wait for thread boot
+		while(true)
+		{
+			usleep(100*1000);
+			if(self.status >= STATUS_RUN)
+				break;
+		}
+		printf("detect thread %d start\n", id);
+	}
+	return 0;
+}
+
 int send_command(int id, int dst_id, char* data, int len)
 {
+	if(wakeup_thread(id) < 0)
+	{
+		return -1;
+	}
+	if(wakeup_thread(dst_id) < 0)
+	{
+		return -1;
+	}
+	
 	if(sendto(self_cli_handle, data, len, 0, (struct sockaddr *)&selfs[dst_id].server_addr, sizeof(selfs[dst_id].server_addr)) < 0)
 	{
 		return -1;
@@ -145,6 +186,41 @@ bool is_need_response(int id, char* cmd_str)
 		return true;
 	else
 		return false;
+}
+
+int get_command_table_size(void)
+{
+	return cmd_table_size;
+}
+
+char* get_command_name(int func_id)
+{
+	if(cmd_table_size <= func_id)
+	{
+		printf("range over id\n");
+		return NULL;
+	}
+	return cmd_table[func_id].cmd_str;
+}
+
+cmd_func* get_command_func(int func_id)
+{
+	if(cmd_table_size <= func_id)
+	{
+		printf("range over id\n");
+		return NULL;
+	}
+	return cmd_table[func_id].func;
+}
+
+bool is_need_save_command(int func_id)
+{
+	if(cmd_table_size <= func_id)
+	{
+		printf("range over id\n");
+		return false;
+	}
+	return cmd_table[func_id].save;
 }
 
 //
