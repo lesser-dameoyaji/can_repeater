@@ -15,8 +15,6 @@ void cmd_echo(int id, int argc, void** argv);
 void cmd_count(int id, int argc, void** argv);
 void cmd_thread(int id, int argc, void** argv);
 void cmd_reset(int id, int argc, void** argv);
-void cmd_load(int id, int argc, void** argv);
-void cmd_save(int id, int argc, void** argv);
 void cmd_exit(int id, int argc, void** argv);
 
 typedef struct {
@@ -36,8 +34,6 @@ static cmd_table_t cmd_table[] = {
 	{"route", cmd_route, true},
 	{"count", cmd_count, false},
 	{"reset", cmd_reset, false},
-	{"load", cmd_load, false},
-	{"save", cmd_save, false},
 	{"exit", cmd_exit, false},
 	{NULL, NULL}
 };
