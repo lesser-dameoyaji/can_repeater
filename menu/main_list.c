@@ -9,12 +9,12 @@ extern int menu_save_enter(int event);
 extern int menu_exit(int event);
 
 list_item_t main_list_items[] = {
-	{&main_list_items[1], "send", menu_exit},
-	{&main_list_items[2], "filter", menu_exit},
-	{&main_list_items[3], "load", menu_load_enter},
-	{&main_list_items[4], "save", menu_save_enter},
-	{&main_list_items[5], "exit", menu_exit},
-	{NULL, NULL, NULL}
+	{&main_list_items[1], false,"send", menu_exit},
+	{&main_list_items[2], false,"filter", menu_exit},
+	{&main_list_items[3], false,"load", menu_load_enter},
+	{&main_list_items[4], false,"save", menu_save_enter},
+	{&main_list_items[5], false,"exit", menu_exit},
+	{NULL, false, NULL, NULL}
 };
 
 static list_info_t main_list_info = {

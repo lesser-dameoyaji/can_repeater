@@ -28,6 +28,7 @@ typedef int menu_func(int event);
 
 typedef struct {
 	void* next;
+	bool alloced;
 	char* name;
 	menu_func* func;
 } list_item_t;

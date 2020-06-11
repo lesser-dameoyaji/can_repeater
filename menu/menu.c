@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <unistd.h>
+#include <stdlib.h>
 #include <string.h>
 #include <errno.h>
 #include <netdb.h>
@@ -165,6 +166,64 @@ void menu_timer_stop(unsigned int timer_id)
 //
 // list menu
 //
+int menu_list_add(list_info_t* list, int id, char* name, menu_func* func)
+{
+	// malloc
+	void* mem;
+	
+	mem = malloc(sizeof(list_item_t));
+}
+
+int menu_list_delete(list_info_t* list, int id)
+{
+	list_item_t *item, *prev, *next;
+	
+	if(id >= list->items_num)
+	{
+		return -1;		// index out of range
+	}
+	
+	prev = NULL;
+	item = list->items;
+	next = NULL;
+	
+	// rewind
+	for(;id > 0; id--)
+	{
+		if(item == NULL)
+		{
+			return -1;		// no id
+		}
+		prev = item;
+		item = item->next;
+	}
+	if(item == NULL)
+		return -1;
+	next = item->next;
+	
+	// unlinkage
+	if(prev == NULL)
+	{
+		list->items = next;
+	}
+	else
+	{
+		prev->next = next;
+	}
+	
+	// free allocated memory
+	if(item->alloced == true)
+	{
+		// free
+		free(item);
+	}
+}
+
+int menu_list_num(list_info_t* list)
+{
+	return list->items_num;
+}
+
 int menu_list_draw(list_info_t* list_info)
 {
 	int i;
